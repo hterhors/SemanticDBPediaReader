@@ -25,9 +25,11 @@ import de.hterhors.semanticmr.crf.of.IObjectiveFunction;
 import de.hterhors.semanticmr.crf.of.SlotFillingObjectiveFunction;
 import de.hterhors.semanticmr.crf.sampling.AbstractSampler;
 import de.hterhors.semanticmr.crf.sampling.impl.EpochSwitchSampler;
-import de.hterhors.semanticmr.crf.sampling.stopcrit.IStoppingCriterion;
+import de.hterhors.semanticmr.crf.sampling.stopcrit.ISamplingStoppingCriterion;
+import de.hterhors.semanticmr.crf.sampling.stopcrit.ITrainingStoppingCriterion;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.ConverganceCrit;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.MaxChainLengthCrit;
+import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoModelChangeCrit;
 import de.hterhors.semanticmr.crf.structure.annotations.AnnotationBuilder;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
@@ -284,7 +286,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * 
 		 * TODO: Find perfect number of epochs.
 		 */
-		int numberOfEpochs = 10;
+		int numberOfEpochs = 100;
 
 		/**
 		 * Sampling strategy that defines how the system should be trained. We
@@ -315,20 +317,24 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		AbstractSampler sampler = new EpochSwitchSampler(epoch -> epoch % 2 == 0);
 //		AbstractSampler sampler = new EpochSwitchSampler(new RandomSwitchSamplingStrategy());
 //		AbstractSampler sampler = new EpochSwitchSampler(e -> new Random(e).nextBoolean());
+
 		/**
 		 * To increase the systems speed performance, we add two stopping criterion for
 		 * sampling. The first one is a maximum chain length of produced states. In this
 		 * example we set the maximum chain length to 10. That means, only 10 changes
 		 * (annotations) can be added to each document.
 		 */
-		IStoppingCriterion maxStepCrit = new MaxChainLengthCrit(10);
+		ISamplingStoppingCriterion maxStepCrit = new MaxChainLengthCrit(10);
 		/**
 		 * The next stopping criterion checks for no or only little (based on a
 		 * threshold) changes in the model score of the produced chain. In this case, if
 		 * the last three states were scored equally, we assume the system to be
 		 * converged.
 		 */
-		IStoppingCriterion noModelChangeCrit = new ConverganceCrit(3, s -> s.getModelScore());
+		ISamplingStoppingCriterion noModelScoreChangeCrit = new ConverganceCrit(3, s -> s.getModelScore());
+
+		ISamplingStoppingCriterion[] sampleStoppingCrits = new ISamplingStoppingCriterion[] { maxStepCrit,
+				noModelScoreChangeCrit };
 
 		/**
 		 * Finally, we chose a model base directory and a name for the model.
@@ -352,6 +358,9 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 			model = new Model(featureTemplates, modelBaseDir, modelName);
 		}
 
+		ITrainingStoppingCriterion noModelChangeCrit = new NoModelChangeCrit(model);
+
+		ITrainingStoppingCriterion[] trainingStoppingCrits = new ITrainingStoppingCriterion[] { noModelChangeCrit };
 		/**
 		 * Create a new semantic parsing CRF and initialize with needed parameter.
 		 */
@@ -364,8 +373,8 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 			/**
 			 * Train the CRF.
 			 */
-			crf.train(learner, instanceProvider.getRedistributedTrainingInstances(), numberOfEpochs, maxStepCrit,
-					noModelChangeCrit);
+			crf.train(learner, instanceProvider.getRedistributedTrainingInstances(), numberOfEpochs,
+					trainingStoppingCrits, sampleStoppingCrits);
 
 			/**
 			 * Save the model as binary. Do not override, in case a file already exists for
@@ -386,7 +395,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * state based on the trained model) that contains annotations.
 		 */
 		Map<Instance, State> testResults = crf.test(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
-				noModelChangeCrit);
+				noModelScoreChangeCrit);
 
 		/**
 		 * Finally, we evaluate the produced states and print some statistics.

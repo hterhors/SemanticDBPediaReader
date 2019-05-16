@@ -89,6 +89,12 @@
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="LogFile" />
 		</Logger>
+		<Logger
+			name="de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoEvalChangeCrit"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
 
 	</Loggers>
 
