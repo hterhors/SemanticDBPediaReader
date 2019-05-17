@@ -90,12 +90,41 @@
 			<AppenderRef ref="LogFile" />
 		</Logger>
 		<Logger
+			name="de.hterhors.semanticmr.projects.dam.DamSlotFillingExtraction"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
+		<Logger
+			name="de.hterhors.semanticmr.projects.structure.StructureSlotFillingExtraction"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
+		<Logger
+			name="de.hterhors.semanticmr.projects.film.FilmSlotFillingExtraction"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
+		<Logger
+			name="de.hterhors.semanticmr.projects.single.SingleSlotFillingExtraction"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
+		<Logger
 			name="de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoEvalChangeCrit"
 			level="INFO" additivity="false">
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="LogFile" />
 		</Logger>
-
+		<Logger
+			name="de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoModelChangeCrit"
+			level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="LogFile" />
+		</Logger>
 	</Loggers>
 
 </Configuration>
