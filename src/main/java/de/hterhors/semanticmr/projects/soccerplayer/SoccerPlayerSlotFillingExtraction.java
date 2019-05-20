@@ -239,7 +239,8 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * filling and is parameterized with a candidate retrieval and the
 		 * constraintsProvider.
 		 */
-		SlotFillingExplorer explorer = new SlotFillingExplorer(candidateRetrieval, constraintsProvider);
+		SlotFillingExplorer explorer = new SlotFillingExplorer(objectiveFunction, candidateRetrieval,
+				constraintsProvider);
 
 		/**
 		 * The learner defines the update strategy of learned weights. parameters are
