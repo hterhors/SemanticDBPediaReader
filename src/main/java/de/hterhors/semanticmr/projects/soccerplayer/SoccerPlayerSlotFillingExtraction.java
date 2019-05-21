@@ -25,6 +25,7 @@ import de.hterhors.semanticmr.crf.of.IObjectiveFunction;
 import de.hterhors.semanticmr.crf.of.SlotFillingObjectiveFunction;
 import de.hterhors.semanticmr.crf.sampling.AbstractSampler;
 import de.hterhors.semanticmr.crf.sampling.impl.EpochSwitchSampler;
+import de.hterhors.semanticmr.crf.sampling.impl.RandomSwitchSamplingStrategy;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.ISamplingStoppingCriterion;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.ITrainingStoppingCriterion;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.ConverganceCrit;
@@ -182,11 +183,12 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * true positive.
 		 *
 		 * For many slot filling scenarios EEvaluationDetail.ENTITY_TYPE is sufficient.
-		 * Here only the entity type is required.
+		 * Here only the entity type is required. However if literal-entity types need
+		 * to be considered as well LITERAL should be chosen.
 		 *
 		 */
 		IObjectiveFunction objectiveFunction = new SlotFillingObjectiveFunction(
-				new CartesianEvaluator(EEvaluationDetail.DOCUMENT_LINKED));
+				new CartesianEvaluator(EEvaluationDetail.LITERAL));
 
 		/**
 		 * The provision of existing entities is an important part in slot filling for
@@ -287,7 +289,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * 
 		 * TODO: Find perfect number of epochs.
 		 */
-		int numberOfEpochs = 100;
+		int numberOfEpochs = 10;
 
 		/**
 		 * Sampling strategy that defines how the system should be trained. We
@@ -315,9 +317,9 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 */
 //		AbstractSampler sampler = SamplerCollection.greedyModelStrategy();
 //		AbstractSampler sampler = SamplerCollection.greedyObjectiveStrategy();
-		AbstractSampler sampler = new EpochSwitchSampler(epoch -> epoch % 2 == 0);
+//		AbstractSampler sampler = new EpochSwitchSampler(epoch -> epoch % 2 == 0);
 //		AbstractSampler sampler = new EpochSwitchSampler(new RandomSwitchSamplingStrategy());
-//		AbstractSampler sampler = new EpochSwitchSampler(e -> new Random(e).nextBoolean());
+		AbstractSampler sampler = new EpochSwitchSampler(e -> new Random(e).nextBoolean());
 
 		/**
 		 * To increase the systems speed performance, we add two stopping criterion for
@@ -375,7 +377,8 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 			 * Train the CRF.
 			 */
 			crf.train(learner, instanceProvider.getRedistributedTrainingInstances(), numberOfEpochs,
-					trainingStoppingCrits, sampleStoppingCrits);
+//					trainingStoppingCrits,
+					sampleStoppingCrits);
 
 			/**
 			 * Save the model as binary. Do not override, in case a file already exists for

@@ -3,7 +3,6 @@ package de.hterhors.semanticmr.projects.dam;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -35,6 +34,7 @@ import de.hterhors.semanticmr.crf.structure.annotations.AnnotationBuilder;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
 import de.hterhors.semanticmr.crf.templates.et.ContextBetweenSlotFillerTemplate;
+import de.hterhors.semanticmr.crf.templates.et.KnowledgeBaseTemplate;
 import de.hterhors.semanticmr.crf.templates.et.LocalityTemplate;
 import de.hterhors.semanticmr.crf.templates.et.SlotIsFilledTemplate;
 import de.hterhors.semanticmr.crf.templates.shared.IntraTokenTemplate;
@@ -43,7 +43,6 @@ import de.hterhors.semanticmr.crf.variables.Annotations;
 import de.hterhors.semanticmr.crf.variables.IStateInitializer;
 import de.hterhors.semanticmr.crf.variables.Instance;
 import de.hterhors.semanticmr.crf.variables.State;
-import de.hterhors.semanticmr.eval.AbstractEvaluator;
 import de.hterhors.semanticmr.eval.CartesianEvaluator;
 import de.hterhors.semanticmr.eval.EEvaluationDetail;
 import de.hterhors.semanticmr.init.specifications.SystemScope;
@@ -239,7 +238,8 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		 * filling and is parameterized with a candidate retrieval and the
 		 * constraintsProvider.
 		 */
-		SlotFillingExplorer explorer = new SlotFillingExplorer(objectiveFunction,candidateRetrieval, constraintsProvider);
+		SlotFillingExplorer explorer = new SlotFillingExplorer(objectiveFunction, candidateRetrieval,
+				constraintsProvider);
 
 		/**
 		 * The learner defines the update strategy of learned weights. parameters are
@@ -262,11 +262,21 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		/**
 		 * General slot-filling templates.
 		 */
+		
+//		Mean Score: Score [getF1()=0.620, getPrecision()=0.511, getRecall()=0.789, tp=448, fp=428, fn=120, tn=0]
+//				CRFStatistics [context=Train, getTotalDuration()=784960]
+//				CRFStatistics [context=Test, getTotalDuration()=2818]
 		featureTemplates.add(new IntraTokenTemplate());
 		featureTemplates.add(new TokenContextTemplate());
 		featureTemplates.add(new ContextBetweenSlotFillerTemplate());
 		featureTemplates.add(new SlotIsFilledTemplate());
 		featureTemplates.add(new LocalityTemplate());
+
+		featureTemplates.add(new KnowledgeBaseTemplate(instanceProvider.getInstances()));
+//		Mean Score: Score [getF1()=0.622, getPrecision()=0.514, getRecall()=0.785, tp=446, fp=421, fn=122, tn=0]
+//				CRFStatistics [context=Train, getTotalDuration()=748082]
+//				CRFStatistics [context=Test, getTotalDuration()=7903]
+//				Model: dam558654
 
 		/**
 		 * During exploration we initialize each state with an empty
@@ -303,7 +313,7 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		 * For now, we chose a simple epoch switch strategy that switches between greedy
 		 * objective score and greedy models score every epoch.
 		 * 
-		 * TODO: Although many problems seem to work well with this strategy there are
+		 * TODO: Although many tasks seem to work well with this strategy there are
 		 * certainly better strategies.
 		 */
 //		AbstractSampler sampler = SamplerCollection.greedyModelStrategy();
@@ -368,7 +378,7 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 			 * Train the CRF.
 			 */
 			crf.train(learner, instanceProvider.getRedistributedTrainingInstances(), numberOfEpochs,
-					 sampleStoppingCrits);
+					sampleStoppingCrits);
 
 			/**
 			 * Save the model as binary. Do not override, in case a file already exists for
