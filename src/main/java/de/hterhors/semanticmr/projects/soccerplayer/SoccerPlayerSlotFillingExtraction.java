@@ -17,10 +17,10 @@ import de.hterhors.semanticmr.corpus.distributor.ShuffleCorpusDistributor;
 import de.hterhors.semanticmr.crf.SemanticParsingCRF;
 import de.hterhors.semanticmr.crf.exploration.SlotFillingExplorer;
 import de.hterhors.semanticmr.crf.exploration.constraints.HardConstraintsProvider;
-import de.hterhors.semanticmr.crf.factor.Model;
 import de.hterhors.semanticmr.crf.learner.AdvancedLearner;
 import de.hterhors.semanticmr.crf.learner.optimizer.SGD;
 import de.hterhors.semanticmr.crf.learner.regularizer.L2;
+import de.hterhors.semanticmr.crf.model.Model;
 import de.hterhors.semanticmr.crf.of.IObjectiveFunction;
 import de.hterhors.semanticmr.crf.of.SlotFillingObjectiveFunction;
 import de.hterhors.semanticmr.crf.sampling.AbstractSampler;
@@ -38,7 +38,7 @@ import de.hterhors.semanticmr.crf.templates.et.ContextBetweenSlotFillerTemplate;
 import de.hterhors.semanticmr.crf.templates.et.LocalityTemplate;
 import de.hterhors.semanticmr.crf.templates.et.SlotIsFilledTemplate;
 import de.hterhors.semanticmr.crf.templates.shared.IntraTokenTemplate;
-import de.hterhors.semanticmr.crf.templates.shared.TokenContextTemplate;
+import de.hterhors.semanticmr.crf.templates.shared.NGramTokenContextTemplate;
 import de.hterhors.semanticmr.crf.variables.Annotations;
 import de.hterhors.semanticmr.crf.variables.IStateInitializer;
 import de.hterhors.semanticmr.crf.variables.Instance;
@@ -103,7 +103,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * The scope represents the specifications of the 4 defined specification files.
 		 * The scope mainly affects the exploration.
 		 */
-		super(SystemScope.Builder.getSpecsHandler()
+		super(SystemScope.Builder.getScopeHandler()
 				/**
 				 * We add a scope reader that reads and interprets the 4 specification files.
 				 */
@@ -266,7 +266,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * General slot-filling templates.
 		 */
 		featureTemplates.add(new IntraTokenTemplate());
-		featureTemplates.add(new TokenContextTemplate());
+		featureTemplates.add(new NGramTokenContextTemplate());
 		featureTemplates.add(new ContextBetweenSlotFillerTemplate());
 		featureTemplates.add(new SlotIsFilledTemplate());
 		featureTemplates.add(new LocalityTemplate());
@@ -398,7 +398,7 @@ public class SoccerPlayerSlotFillingExtraction extends AbstractSemReadProject {
 		 * in this case. This method returns for each instances a final state (best
 		 * state based on the trained model) that contains annotations.
 		 */
-		Map<Instance, State> testResults = crf.test(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
+		Map<Instance, State> testResults = crf.predict(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
 				noModelScoreChangeCrit);
 
 		/**

@@ -5,12 +5,12 @@ import java.util.List;
 
 import de.hterhors.semanticmr.candprov.sf.AnnotationCandidateRetrievalCollection;
 import de.hterhors.semanticmr.candprov.sf.ISlotTypeAnnotationCandidateProvider;
-import de.hterhors.semanticmr.crf.factor.AbstractFactorScope;
-import de.hterhors.semanticmr.crf.factor.Factor;
+import de.hterhors.semanticmr.crf.model.AbstractFactorScope;
+import de.hterhors.semanticmr.crf.model.Factor;
 import de.hterhors.semanticmr.crf.structure.annotations.AbstractAnnotation;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
-import de.hterhors.semanticmr.crf.structure.slots.SingleFillerSlot;
-import de.hterhors.semanticmr.crf.structure.slots.SlotType;
+import de.hterhors.semanticmr.crf.structure.annotations.SingleFillerSlot;
+import de.hterhors.semanticmr.crf.structure.annotations.SlotType;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
 import de.hterhors.semanticmr.crf.variables.Instance;
 import de.hterhors.semanticmr.crf.variables.State;
@@ -36,7 +36,7 @@ public class BirthDeathYearTemplate extends AbstractFeatureTemplate<BirthDeathYe
 
 	}
 
-	static class BirthDeathYearScope extends AbstractFactorScope<BirthDeathYearScope> {
+	static class BirthDeathYearScope extends AbstractFactorScope {
 
 		/**
 		 * The currently assigned year.

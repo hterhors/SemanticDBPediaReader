@@ -3,6 +3,7 @@ package de.hterhors.semanticmr.projects.dam;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -17,10 +18,10 @@ import de.hterhors.semanticmr.corpus.distributor.ShuffleCorpusDistributor;
 import de.hterhors.semanticmr.crf.SemanticParsingCRF;
 import de.hterhors.semanticmr.crf.exploration.SlotFillingExplorer;
 import de.hterhors.semanticmr.crf.exploration.constraints.HardConstraintsProvider;
-import de.hterhors.semanticmr.crf.factor.Model;
 import de.hterhors.semanticmr.crf.learner.AdvancedLearner;
 import de.hterhors.semanticmr.crf.learner.optimizer.SGD;
 import de.hterhors.semanticmr.crf.learner.regularizer.L2;
+import de.hterhors.semanticmr.crf.model.Model;
 import de.hterhors.semanticmr.crf.of.IObjectiveFunction;
 import de.hterhors.semanticmr.crf.of.SlotFillingObjectiveFunction;
 import de.hterhors.semanticmr.crf.sampling.AbstractSampler;
@@ -30,6 +31,7 @@ import de.hterhors.semanticmr.crf.sampling.stopcrit.ITrainingStoppingCriterion;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.ConverganceCrit;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.MaxChainLengthCrit;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoModelChangeCrit;
+import de.hterhors.semanticmr.crf.structure.EntityType;
 import de.hterhors.semanticmr.crf.structure.annotations.AnnotationBuilder;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
@@ -38,7 +40,7 @@ import de.hterhors.semanticmr.crf.templates.et.KnowledgeBaseTemplate;
 import de.hterhors.semanticmr.crf.templates.et.LocalityTemplate;
 import de.hterhors.semanticmr.crf.templates.et.SlotIsFilledTemplate;
 import de.hterhors.semanticmr.crf.templates.shared.IntraTokenTemplate;
-import de.hterhors.semanticmr.crf.templates.shared.TokenContextTemplate;
+import de.hterhors.semanticmr.crf.templates.shared.NGramTokenContextTemplate;
 import de.hterhors.semanticmr.crf.variables.Annotations;
 import de.hterhors.semanticmr.crf.variables.IStateInitializer;
 import de.hterhors.semanticmr.crf.variables.Instance;
@@ -101,7 +103,7 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		 * The scope represents the specifications of the 4 defined specification files.
 		 * The scope mainly affects the exploration.
 		 */
-		super(SystemScope.Builder.getSpecsHandler()
+		super(SystemScope.Builder.getScopeHandler()
 				/**
 				 * We add a scope reader that reads and interprets the 4 specification files.
 				 */
@@ -116,6 +118,14 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 				 */
 				.build());
 
+		System.out.println(EntityType.get("Dam").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("River").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Country").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Place").getHierarchicalEntityTypes().size());
+
+		System.exit(1);
+
+		
 		/**
 		 * Read and distribute the corpus.
 		 * 
@@ -262,21 +272,25 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		/**
 		 * General slot-filling templates.
 		 */
-		
+
 //		Mean Score: Score [getF1()=0.620, getPrecision()=0.511, getRecall()=0.789, tp=448, fp=428, fn=120, tn=0]
 //				CRFStatistics [context=Train, getTotalDuration()=784960]
 //				CRFStatistics [context=Test, getTotalDuration()=2818]
 		featureTemplates.add(new IntraTokenTemplate());
-		featureTemplates.add(new TokenContextTemplate());
+		featureTemplates.add(new NGramTokenContextTemplate());
 		featureTemplates.add(new ContextBetweenSlotFillerTemplate());
 		featureTemplates.add(new SlotIsFilledTemplate());
 		featureTemplates.add(new LocalityTemplate());
 
-		featureTemplates.add(new KnowledgeBaseTemplate(instanceProvider.getInstances()));
+		featureTemplates.add(new KnowledgeBaseTemplate());
 //		Mean Score: Score [getF1()=0.622, getPrecision()=0.514, getRecall()=0.785, tp=446, fp=421, fn=122, tn=0]
 //				CRFStatistics [context=Train, getTotalDuration()=748082]
 //				CRFStatistics [context=Test, getTotalDuration()=7903]
 //				Model: dam558654
+
+		Map<Class<? extends AbstractFeatureTemplate<?>>, Object[]> parameter = new HashMap<>();
+
+		parameter.put(KnowledgeBaseTemplate.class, new Object[] { instanceProvider.getInstances() });
 
 		/**
 		 * During exploration we initialize each state with an empty
@@ -362,6 +376,8 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 			model = new Model(featureTemplates, modelBaseDir, modelName);
 		}
 
+		model.setParameter(parameter);
+
 		ITrainingStoppingCriterion noModelChangeCrit = new NoModelChangeCrit(model);
 
 		ITrainingStoppingCriterion[] trainingStoppingCrits = new ITrainingStoppingCriterion[] { noModelChangeCrit };
@@ -398,7 +414,7 @@ public class DamSlotFillingExtraction extends AbstractSemReadProject {
 		 * in this case. This method returns for each instances a final state (best
 		 * state based on the trained model) that contains annotations.
 		 */
-		Map<Instance, State> testResults = crf.test(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
+		Map<Instance, State> testResults = crf.predict(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
 				noModelScoreChangeCrit);
 
 		/**

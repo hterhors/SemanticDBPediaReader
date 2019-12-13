@@ -17,10 +17,10 @@ import de.hterhors.semanticmr.corpus.distributor.ShuffleCorpusDistributor;
 import de.hterhors.semanticmr.crf.SemanticParsingCRF;
 import de.hterhors.semanticmr.crf.exploration.SlotFillingExplorer;
 import de.hterhors.semanticmr.crf.exploration.constraints.HardConstraintsProvider;
-import de.hterhors.semanticmr.crf.factor.Model;
 import de.hterhors.semanticmr.crf.learner.AdvancedLearner;
 import de.hterhors.semanticmr.crf.learner.optimizer.SGD;
 import de.hterhors.semanticmr.crf.learner.regularizer.L2;
+import de.hterhors.semanticmr.crf.model.Model;
 import de.hterhors.semanticmr.crf.of.IObjectiveFunction;
 import de.hterhors.semanticmr.crf.of.SlotFillingObjectiveFunction;
 import de.hterhors.semanticmr.crf.sampling.AbstractSampler;
@@ -30,6 +30,7 @@ import de.hterhors.semanticmr.crf.sampling.stopcrit.ITrainingStoppingCriterion;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.ConverganceCrit;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.MaxChainLengthCrit;
 import de.hterhors.semanticmr.crf.sampling.stopcrit.impl.NoModelChangeCrit;
+import de.hterhors.semanticmr.crf.structure.EntityType;
 import de.hterhors.semanticmr.crf.structure.annotations.AnnotationBuilder;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
@@ -37,7 +38,7 @@ import de.hterhors.semanticmr.crf.templates.et.ContextBetweenSlotFillerTemplate;
 import de.hterhors.semanticmr.crf.templates.et.LocalityTemplate;
 import de.hterhors.semanticmr.crf.templates.et.SlotIsFilledTemplate;
 import de.hterhors.semanticmr.crf.templates.shared.IntraTokenTemplate;
-import de.hterhors.semanticmr.crf.templates.shared.TokenContextTemplate;
+import de.hterhors.semanticmr.crf.templates.shared.NGramTokenContextTemplate;
 import de.hterhors.semanticmr.crf.variables.Annotations;
 import de.hterhors.semanticmr.crf.variables.IStateInitializer;
 import de.hterhors.semanticmr.crf.variables.Instance;
@@ -91,7 +92,7 @@ public class FilmSlotFillingExtraction extends AbstractSemReadProject {
 		 * The scope represents the specifications of the 4 defined specification files.
 		 * The scope mainly affects the exploration.
 		 */
-		super(SystemScope.Builder.getSpecsHandler()
+		super(SystemScope.Builder.getScopeHandler()
 				/**
 				 * We add a scope reader that reads and interprets the 4 specification files.
 				 */
@@ -105,6 +106,14 @@ public class FilmSlotFillingExtraction extends AbstractSemReadProject {
 				 * Finally, we build the systems scope.
 				 */
 				.build());
+		System.out.println(EntityType.get("Film").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Agent").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Person").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Actor").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("Organisation").getHierarchicalEntityTypes().size());
+		System.out.println(EntityType.get("MusicalArtist").getHierarchicalEntityTypes().size());
+
+		System.exit(1);
 
 		/**
 		 * Read and distribute the corpus.
@@ -228,7 +237,8 @@ public class FilmSlotFillingExtraction extends AbstractSemReadProject {
 		 * filling and is parameterized with a candidate retrieval and the
 		 * constraintsProvider.
 		 */
-		SlotFillingExplorer explorer = new SlotFillingExplorer(objectiveFunction,candidateRetrieval, constraintsProvider);
+		SlotFillingExplorer explorer = new SlotFillingExplorer(objectiveFunction, candidateRetrieval,
+				constraintsProvider);
 
 		/**
 		 * The learner defines the update strategy of learned weights. parameters are
@@ -252,7 +262,7 @@ public class FilmSlotFillingExtraction extends AbstractSemReadProject {
 		 * General slot-filling templates.
 		 */
 		featureTemplates.add(new IntraTokenTemplate());
-		featureTemplates.add(new TokenContextTemplate());
+		featureTemplates.add(new NGramTokenContextTemplate());
 		featureTemplates.add(new ContextBetweenSlotFillerTemplate());
 		featureTemplates.add(new SlotIsFilledTemplate());
 		featureTemplates.add(new LocalityTemplate());
@@ -377,7 +387,7 @@ public class FilmSlotFillingExtraction extends AbstractSemReadProject {
 		 * in this case. This method returns for each instances a final state (best
 		 * state based on the trained model) that contains annotations.
 		 */
-		Map<Instance, State> testResults = crf.test(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
+		Map<Instance, State> testResults = crf.predict(instanceProvider.getRedistributedTestInstances(), maxStepCrit,
 				noModelScoreChangeCrit);
 
 		/**

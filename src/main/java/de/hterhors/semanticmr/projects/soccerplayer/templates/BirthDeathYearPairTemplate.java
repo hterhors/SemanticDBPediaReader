@@ -3,11 +3,11 @@ package de.hterhors.semanticmr.projects.soccerplayer.templates;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.hterhors.semanticmr.crf.factor.AbstractFactorScope;
-import de.hterhors.semanticmr.crf.factor.Factor;
+import de.hterhors.semanticmr.crf.model.AbstractFactorScope;
+import de.hterhors.semanticmr.crf.model.Factor;
 import de.hterhors.semanticmr.crf.structure.annotations.EntityTemplate;
-import de.hterhors.semanticmr.crf.structure.slots.SingleFillerSlot;
-import de.hterhors.semanticmr.crf.structure.slots.SlotType;
+import de.hterhors.semanticmr.crf.structure.annotations.SingleFillerSlot;
+import de.hterhors.semanticmr.crf.structure.annotations.SlotType;
 import de.hterhors.semanticmr.crf.templates.AbstractFeatureTemplate;
 import de.hterhors.semanticmr.crf.variables.State;
 import de.hterhors.semanticmr.projects.soccerplayer.templates.BirthDeathYearPairTemplate.BirthDeathYearPairScope;
@@ -19,7 +19,7 @@ import de.hterhors.semanticmr.projects.soccerplayer.templates.BirthDeathYearPair
  */
 public class BirthDeathYearPairTemplate extends AbstractFeatureTemplate<BirthDeathYearPairScope> {
 
-	static class BirthDeathYearPairScope extends AbstractFactorScope<BirthDeathYearPairScope> {
+	static class BirthDeathYearPairScope extends AbstractFactorScope {
 
 		/**
 		 * The currently assigned birth year.
